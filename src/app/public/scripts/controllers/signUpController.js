@@ -30,13 +30,13 @@ angular.module('loginApp')
             },
             phone: {
               rules: [{
-                type: 'regExp[^(?:(?:\\+|0{0,2})91(\\s*[\\-]\\s*)?|[0]?)?[789]\\d{9}$]', // eslint-disable-line  ,max-len
+                type: 'regExp[^\\d{10}$]', // eslint-disable-line  ,max-len
                 prompt: $rootScope.messages.stmsg.m0091
               }]
             },
             email: {
               rules: [{
-                type: 'email',
+                type: 'regExp[/^([a-zA-Z0-9_.+\\-])+\\@(([a-zA-Z0-9-])+\\.)+([a-zA-Z0-9]{2,4})+$/]',
                 prompt: $rootScope.messages.stmsg.m0089
               }]
             },

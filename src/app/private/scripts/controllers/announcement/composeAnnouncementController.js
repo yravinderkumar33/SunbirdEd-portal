@@ -1,9 +1,8 @@
 'use strict'
 angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope', '$scope', '$state',
   '$stateParams', '$timeout', 'config', 'toasterService', 'fileUpload', 'AnnouncementModel',
-  'announcementAdapter', 'portalTelemetryService',
-  function ($rootScope, $scope, $state, $stateParams, $timeout, config, toasterService, fileUpload,
-    AnnouncementModel, announcementAdapter, portalTelemetryService) {
+  'announcementAdapter', 'telemetryService', function ($rootScope, $scope, $state, $stateParams,
+    $timeout, config, toasterService, fileUpload, AnnouncementModel, announcementAdapter, telemetryService) {
     var composeAnn = this
     composeAnn.targetIds = []
     composeAnn.disableBtn = true
@@ -103,7 +102,7 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
     composeAnn.removeLink = function (index) {
       composeAnn.repeatableWebLinks.splice(index, 1)
       if (composeAnn.announcement.links) {
-        delete composeAnn.announcement.links[index]
+        composeAnn.announcement.links.splice(index, 1)
       }
       composeAnn.showUrlField = !!composeAnn.repeatableWebLinks.length
       composeAnn.enableRecepientBtn()
@@ -194,7 +193,7 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
          * @memberOf Controllers.composeAnnouncementCtrl
          */
     composeAnn.saveAnnouncement = function () {
-      var url = ''
+      var url = '' // eslint-disable-line no-unused-vars
       if (composeAnn.editAction) {
         url = '/private/index#!/announcement/resend/' + $stateParams.announcementId +
                     '/4'
@@ -208,14 +207,6 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
         .then(function (apiResponse) {
           composeAnn.hideSendBtn = false
           composeAnn.hideModel('createAnnouncementModal')
-          portalTelemetryService.fireAnnouncementImpressions({
-            env: 'community.announcements',
-            type: 'view',
-            pageid: 'announcement_form_complete',
-            id: '',
-            name: '',
-            url: url
-          }, $rootScope.userIdHashTag)
           if (composeAnn.editAction) {
             $('#announcementResendModal').modal({
               closable: false
@@ -226,6 +217,8 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
             }).modal('show')
           }
           $rootScope.userIdHashTag = null
+          telemetryService.endTelemetryData('announcement', '', 'announcement', '1.0', 'announcement',
+            'announcement-create', '')
           $state.go('announcementOutbox')
         }, function (err) {
           composeAnn.isMetaModified = true
@@ -268,9 +261,9 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
       }
       return composeAnn.convertedFileSize
     }
-    window.removeCreateAnnAttachment = function (item, pos) {
+    window.removeCreateAnnAttachment = function (item, pos, name) {
       $(item).closest('li').remove()
-      composeAnn.announcement.attachments.splice(pos, 1)
+      composeAnn.onUploadCancel(pos, name)
     }
     /**
          * @method initializeFileUploader
@@ -304,16 +297,19 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
         $('.qq-upload-list').parent().prepend('<ul id="old-file-list" class="' +
                     ' qq-upload-list"></ul>')
         _.forEach(attachments, function (attachment, pos) {
+          var name = "'" + attachment.name + "'" // eslint-disable-line
           $('#old-file-list').append(
             '<li class="qq-upload-retryable w3-container' +
                         ' w3-border w3-round-xlarge qq-upload-success">' +
                         ' <i id="removeFile" onclick="removeCreateAnnAttachment ' +
-                        '(this,' + pos + ')" class="remove icon cursor-pointer" ' +
+                        '(this,' + pos + ', ' + name + ')" class="remove icon cursor-pointer" ' +
                         'style="float:right;"></i><span class="qq-upload-file-selector ' +
-                        'qq-upload-file" style="width: 222px;">' +
+                        'qq-upload-file" style="width: 200px;">' +
                         attachment.name + '</span></li>')
+          composeAnn.uploadAttchement = true
         })
       }
+      composeAnn.enableRecepientBtn()
     }
     /**
          * @method onUploadComplete
@@ -369,9 +365,13 @@ angular.module('playerApp').controller('composeAnnouncementCtrl', ['$rootScope',
       if (composeAnn.stepNumber === 1 && composeAnn.announcement === null) {
         if (composeAnn.editAction) {
           composeAnn.getResend($stateParams.announcementId)
+          telemetryService.startTelemetryData('announcement', $stateParams.announcementId, 'announcement',
+            '1.0', 'announcement', 'announcement-create', '')
         } else {
           composeAnn.announcement = new AnnouncementModel.Announcement({})
           composeAnn.announcement.hideDate = true
+          telemetryService.startTelemetryData('announcement', '', 'announcement', '1.0', 'announcement',
+            'announcement-create', '')
         }
       }
       if (composeAnn.stepNumber === 1) {

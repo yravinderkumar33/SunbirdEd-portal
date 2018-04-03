@@ -1,7 +1,7 @@
 {
   "name": "player",
   "author": "sunbird",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "private": true,
   "devDependencies": {
     "better-console": "^1.0.0",
@@ -90,10 +90,12 @@
   },
   "scripts": {
     "test-announcements": "mocha 'test/announcements/server/**/*.js' --reporter mochawesome",
+    "test-discussions": "mocha 'test/discussions/**/*.js' --reporter mochawesome",
     "lint": "eslint --ignore-path .eslintignore .",
-    "preinstall": "npm install ./app/thirdparty/libs/sb_api_interceptor && npm install ./app/thirdparty/libs/sb_cache_manager",
+    "preinstall": "npm install ./app/thirdparty/libs/sb_api_interceptor && npm install ./app/thirdparty/libs/sb_cache_manager  && npm install ./app/thirdparty/libs/sb_telemetry_util",
     "validate": "npm ls",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "resource-bundles": "node app/helpers/resourceBundles/build.js"
   },
   "lint-staged": {
     "*.js": "eslint"
@@ -123,6 +125,7 @@
     "request": "^2.81.0",
     "sb_api_interceptor": "file:app/thirdparty/libs/sb_api_interceptor",
     "sb_cache_manager": "file:app/thirdparty/libs/sb_cache_manager",
+    "sb_telemetry_util": "file:app/thirdparty/libs/sb_telemetry_util",
     "ua-parser-js": "^0.7.13",
     "uuid": "^3.1.0"
   },
@@ -141,7 +144,8 @@
       "iziToast",
       "org",
       "alasql",
-      "md5"
+      "md5",
+      "EkTelemetry"
     ],
     "ignore": [
       "./../Dockerfile"

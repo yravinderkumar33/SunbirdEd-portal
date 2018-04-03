@@ -2,20 +2,21 @@
 
 angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService', '$rootScope',
   'userService', '$q', 'config', '$location', '$timeout',
-  'portalTelemetryService', 'messages', 'frmelmnts', 'sessionService',
+  'telemetryService', 'messages', 'frmelmnts', 'sessionService',
   'learnService', '$http', 'searchService', 'toasterService', 'adminService', '$state', '$window',
   function ($scope, permissionsService, $rootScope, userService, $q, config,
-    $location, $timeout, portalTelemetryService, messages, frmelmnts,
+    $location, $timeout, telemetryService, messages, frmelmnts,
     sessionService, learnService, $http, searchService, toasterService, adminService, $state, $window) {
     $rootScope.userId = $('#userId').attr('value')
     $rootScope.sessionId = $('#sessionId').attr('value')
     $rootScope.cdnUrl = $('#cdnUrl').attr('value') || ''
-    $rootScope.theme = $('#theme').attr('value') || 'default'
     $rootScope.language = $('#defaultPortalLanguage').attr('value') || 'en'
     $rootScope.messages = messages[$rootScope.language]
     $rootScope.frmelmnts = frmelmnts[$rootScope.language]
     $rootScope.searchKey = ''
     $rootScope.enrolledCourseIds = {}
+    telemetryService.setConfigData('env', 'home')
+    telemetryService.setConfigData('message', 'Content read')
     /**
      * This function contentModelSetBackLink is to store back link value for modal popup close dynamically.
      * **/
@@ -77,7 +78,7 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
       var organisationNames = []
       var orgRoleMap = {}
 
-            var rootOrg = (profileData.rootOrg && !_.isUndefined(profileData.rootOrg.hashTagId)) ? profileData.rootOrg.hashTagId : md5('sunbird'); //eslint-disable-line
+      var rootOrg = (profileData.rootOrg && !_.isUndefined(profileData.rootOrg.hashTagId)) ? profileData.rootOrg.hashTagId : md5('sunbird'); //eslint-disable-line
       org.sunbird.portal.channel = rootOrg
       $rootScope.rootOrgId = profileData.rootOrgId
       $rootScope.rootOrgAdmin = false
@@ -86,7 +87,9 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
       _.forEach(profileData.organisations, function (org) {
         if (org.roles && _.isArray(org.roles)) {
           userRoles = _.union(userRoles, org.roles)
-          if (org.organisationId === profileData.rootOrgId && _.indexOf(org.roles, 'ORG_ADMIN') > -1) {
+          if (org.organisationId === profileData.rootOrgId &&
+           (_.indexOf(org.roles, 'ORG_ADMIN') > -1 ||
+            _.indexOf(org.roles, 'SYSTEM_ADMINISTRATION') > -1)) {
             $rootScope.rootOrgAdmin = true
           }
           orgRoleMap[org.organisationId] = org.roles
@@ -101,6 +104,10 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
       if ($rootScope.rootOrgId) {
         organisationIds.push($rootScope.rootOrgId)
       }
+
+      // set role org map
+      permissionsService.setRoleOrgMap(profileData)
+
       organisationIds = _.uniq(organisationIds)
       $rootScope.organisationNames = organisationNames
       $rootScope.organisationIds = angular.copy(organisationIds)
@@ -109,6 +116,7 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
       permissionsService.setCurrentUserRoles(userRoles)
       $rootScope.initializePermissionDirective = true
       $scope.getTelemetryConfigData(profileData)
+      telemetryService.init()
       $scope.setRootOrgInfo(profileData)
     }
 
@@ -126,7 +134,7 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
         })
         .finally(function () {
           org.sunbird.portal.init()
-          portalTelemetryService.init()
+          // portalTelemetryService.init()
         })
     }
 
@@ -147,7 +155,8 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
             }
             document.head.appendChild(link)
           }
-        }).catch(function () {
+        }).catch(function (err) {
+          console.log('app controller', err)
           toasterService.error($rootScope.messages.fmsg.m0057)
         })
       }
@@ -162,13 +171,13 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
           if (res && res.responseCode === 'OK') {
             var profileData = res.result.response
             // console.log(profileData.organisations[0].organisationId)
-            $rootScope.userOrganizationId = profileData.organisations[0] && profileData.organisations[0].organisationId
             userService.setCurrentUserProfile(profileData)
             $scope.userProfile(profileData)
           } else {
             // error handler
           }
-        }).catch(function () {
+        }).catch(function (error) {
+          console.log('err', error)
           // error handler
         })
       }
@@ -178,6 +187,7 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
     $rootScope.closeRoleAccessError = function () {
       $rootScope.accessDenied = ''
     }
+
     $scope.getMyCourses = function () {
       sessionService.setSessionData('ENROLLED_COURSES', undefined)
       learnService.enrolledCourses($rootScope.userId).then(function (successResponse) {
@@ -272,6 +282,29 @@ angular.module('playerApp').controller('AppCtrl', ['$scope', 'permissionsService
       $state.go('Profile')
     }
 
+    // telemetry interact event
+    $rootScope.generateInteractEvent = function (env, objId, objType, objVer, edataId, pageId, objRollup) {
+      telemetryService.interactTelemetryData(env, objId, objType, objVer, edataId, pageId, objRollup)
+    }
+
+    // telemetry start event
+    $rootScope.generateStartEvent = function (env, objId, objType, objVer, startContentType,
+      pageId, mode) {
+      telemetryService.startTelemetryData(env, objId, objType, objVer, startContentType,
+        pageId, mode)
+    }
+
+    // telemetry end event
+    $rootScope.generateEndEvent = function (env, objId, objType, objVer, startContentType,
+      pageId, mode) {
+      telemetryService.endTelemetryData(env, objId, objType, objVer, startContentType,
+        pageId, mode)
+    }
+
     $scope.getBadges()
     $scope.getOrgTypes()
+
+    $window.onbeforeunload = function () {
+      document.dispatchEvent(new CustomEvent('TelemetryEvent', { detail: { name: 'window:unload' } }))
+    }
   }])

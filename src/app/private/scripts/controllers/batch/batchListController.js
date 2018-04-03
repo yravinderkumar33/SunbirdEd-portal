@@ -2,8 +2,9 @@
 
 angular.module('playerApp')
   .controller('BatchListController', ['$rootScope', 'toasterService', 'batchService', '$state',
-    'userService', 'PaginationService', function ($rootScope, toasterService, batchService,
-      $state, userService, PaginationService) {
+    'userService', 'PaginationService', 'permissionsService', 'telemetryService',
+    function ($rootScope, toasterService, batchService, $state, userService, PaginationService,
+      permissionsService, telemetryService) {
       var batch = this
       batch.userId = $rootScope.userId
       batch.list = []
@@ -35,7 +36,7 @@ angular.module('playerApp')
           request: {
             filters: {
               status: batch.status.toString(),
-              createdFor: $rootScope.organisationIds,
+              createdFor: permissionsService.getRoleOrgMap() && permissionsService.getRoleOrgMap()['COURSE_MENTOR'],
               createdBy: batch.userId
             },
             sort_by: { createdDate: 'desc' },
@@ -80,6 +81,8 @@ angular.module('playerApp')
               batch.error = showErrorMessage(true,
                 $rootScope.messages.stmsg.m0020,
                 $rootScope.messages.stmsg.m0008)
+            } else {
+              batch.error = {}
             }
           } else {
             toasterService.error($rootScope.messages.fmsg.m0004)
@@ -101,6 +104,30 @@ angular.module('playerApp')
           return
         }
         batch.listBatches(page)
+      }
+
+      // telemetry intaract event
+      batch.generateInteractEvent = function (edataId, batchId) {
+        telemetryService.interactTelemetryData('workspace', batchId, edataId, '1.0',
+          edataId, 'workspace-course-batches')
+      }
+
+      // telemetry visit spec
+      var inviewLogs = []
+      batch.lineInView = function (index, inview, item, section) {
+        var obj = _.filter(inviewLogs, function (o) {
+          return o.objid === item.identifier
+        })
+        if (inview === true && obj.length === 0) {
+          inviewLogs.push({
+            objid: item.identifier,
+            objtype: 'batch',
+            section: section,
+            index: index
+          })
+        }
+        console.log('------', inviewLogs)
+        telemetryService.setVisitData(inviewLogs)
       }
     }
   ])

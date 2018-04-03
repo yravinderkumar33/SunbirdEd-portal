@@ -1,10 +1,10 @@
 'use strict'
 
 angular.module('loginApp')
-  .controller('contentPlayerCtrl', ['playerTelemetryUtilsService', '$state', '$scope',
-    '$timeout', '$stateParams', '$rootScope', 'config', 'contentService', 'toasterService', '$location', '$anchorScroll',
-    function (playerTelemetryUtilsService, $state, $scope,
-      $timeout, $stateParams, $rootScope, config, contentService, toasterService, $location, $anchorScroll) {
+  .controller('contentPlayerCtrl', ['$state', '$scope', '$timeout', '$stateParams', '$rootScope',
+    'config', 'contentService', 'toasterService', '$location', '$anchorScroll',
+    function ($state, $scope, $timeout, $stateParams, $rootScope, config, contentService,
+      toasterService, $location, $anchorScroll) {
       $scope.isHeader = $scope.isheader
       $scope.isClose = $scope.isclose
       $scope.showModalInLectureView = true
@@ -66,7 +66,7 @@ angular.module('loginApp')
                         'gradeLevel,status,concepts,versionKey,name,appIcon,contentType,owner,' +
                         'domain,code,visibility,createdBy,description,language,mediaType,' +
                         'osId,languageCode,createdOn,lastUpdatedOn,audience,ageGroup,' +
-                        'attributions,artifactUrl,mimeType,medium'
+                        'attributions,artifactUrl,mimeType,medium,year,publisher'
         }
         contentService.getById(req, qs).then(function (response) {
           if (response && response.responseCode === 'OK') {
@@ -77,7 +77,8 @@ angular.module('loginApp')
             $scope.errorObject = {}
             if (response.result.content.mimeType === config.MIME_TYPE.collection) {
               var contentData = response.result.content
-              window.localStorage.setItem('redirectUrl', '/preview/collection/' + contentId + '/' + contentData.name + '/')
+              window.localStorage.setItem('redirectUrl', '/preview/collection/' +
+              contentId + '/' + contentData.name + '/')
               $state.go('PublicCollection', { contentId: contentData.identifier, name: contentData.name })
             } else {
               showPlayer(response.result.content)
