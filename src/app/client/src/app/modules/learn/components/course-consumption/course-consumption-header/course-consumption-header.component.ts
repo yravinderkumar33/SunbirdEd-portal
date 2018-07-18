@@ -4,7 +4,8 @@ import { ActivatedRoute, Router, NavigationExtras } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import * as _ from 'lodash';
 import { CollectionHierarchyAPI, ContentService, CoursesService, PermissionService, CopyContentService } from '@sunbird/core';
-import { ResourceService, ToasterService, ContentData, ContentUtilsServiceService, ITelemetryShare } from '@sunbird/shared';
+import { ResourceService, ToasterService, ContentData, ContentUtilsServiceService, ITelemetryShare,
+   ExternalUrlPreviewService } from '@sunbird/shared';
 import { IInteractEventObject, IInteractEventEdata, IImpressionEventInput } from '@sunbird/telemetry';
 import 'rxjs/add/operator/takeUntil';
 import { Subject } from 'rxjs/Subject';
@@ -47,7 +48,8 @@ export class CourseConsumptionHeaderComponent implements OnInit, AfterViewInit, 
   constructor(private activatedRoute: ActivatedRoute, private courseConsumptionService: CourseConsumptionService,
     public resourceService: ResourceService, private router: Router, public permissionService: PermissionService,
     public toasterService: ToasterService, public copyContentService: CopyContentService, private changeDetectorRef: ChangeDetectorRef,
-    private courseProgressService: CourseProgressService, public contentUtilsServiceService: ContentUtilsServiceService) {
+    private courseProgressService: CourseProgressService, public contentUtilsServiceService: ContentUtilsServiceService,
+    public externalUrlPreviewService: ExternalUrlPreviewService, public coursesService: CoursesService) {
 
   }
 
@@ -103,12 +105,13 @@ export class CourseConsumptionHeaderComponent implements OnInit, AfterViewInit, 
     this.router.navigate(['learn/course', this.courseId, 'dashboard']);
   }
 
-  resumeCourse() {
+  resumeCourse(showExtUrlMsg?: boolean) {
     const navigationExtras: NavigationExtras = {
       queryParams: { 'contentId': this.lastPlayedContentId },
       relativeTo: this.activatedRoute
     };
     this.router.navigate([this.courseId, 'batch', this.batchId], navigationExtras);
+    this.coursesService.setExtContentMsg(showExtUrlMsg);
   }
 
   flagCourse() {

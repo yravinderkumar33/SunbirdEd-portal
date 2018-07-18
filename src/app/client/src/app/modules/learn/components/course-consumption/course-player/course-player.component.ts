@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
-import { PlayerService, CollectionHierarchyAPI, ContentService, UserService, BreadcrumbsService, PermissionService } from '@sunbird/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, Input } from '@angular/core';
+import { PlayerService, CollectionHierarchyAPI, ContentService, UserService, BreadcrumbsService, PermissionService,
+  CoursesService } from '@sunbird/core';
 import { Observable } from 'rxjs/Observable';
 import { ActivatedRoute, Router, NavigationExtras } from '@angular/router';
 import * as _ from 'lodash';
 import {
   WindowScrollService, RouterNavigationService, ILoaderMessage, PlayerConfig, ConfigService,
-  ICollectionTreeOptions, NavigationHelperService, ToasterService, ResourceService
+  ICollectionTreeOptions, NavigationHelperService, ToasterService, ResourceService, ExternalUrlPreviewService
 } from '@sunbird/shared';
 import { Subscription } from 'rxjs/Subscription';
 import { CourseConsumptionService, CourseBatchService } from './../../../services';
@@ -75,6 +76,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   queryParamSubscription: Subscription;
 
   updateContentsStateSubscription: Subscription;
+
+  istrustedClickXurl = false;
   /**
    * To show/hide the note popup editor
    */
@@ -113,6 +116,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   noContentToPlay = 'No content to play';
 
+  showExtContentMsg = false;
+
   public loaderMessage: ILoaderMessage = {
     headerMessage: 'Please wait...',
     loaderMessage: 'Fetching content details!'
@@ -126,7 +131,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     private courseConsumptionService: CourseConsumptionService, windowScrollService: WindowScrollService,
     router: Router, public navigationHelperService: NavigationHelperService, private userService: UserService,
     private toasterService: ToasterService, private resourceService: ResourceService, public breadcrumbsService: BreadcrumbsService,
-    private cdr: ChangeDetectorRef, public courseBatchService: CourseBatchService, public permissionService: PermissionService) {
+    private cdr: ChangeDetectorRef, public courseBatchService: CourseBatchService, public permissionService: PermissionService,
+    public externalUrlPreviewService: ExternalUrlPreviewService, public coursesService: CoursesService) {
     this.contentService = contentService;
     this.activatedRoute = activatedRoute;
     this.windowScrollService = windowScrollService;
@@ -224,8 +230,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     this.queryParamSubscription = this.activatedRoute.queryParams.subscribe((queryParams) => {
       if (queryParams.contentId) {
         const content = this.findContentById(queryParams.contentId);
+        const isExtContentMsg = this.coursesService.showExtContentMsg;
         if (content) {
-          this.OnPlayContent({ title: _.get(content, 'model.name'), id: _.get(content, 'model.identifier') });
+          this.OnPlayContent({ title: _.get(content, 'model.name'), id: _.get(content, 'model.identifier')},
+          isExtContentMsg);
         } else {
           this.toasterService.error(this.resourceService.messages.emsg.m0005); // need to change message
           this.closeContentPlayer();
@@ -240,7 +248,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       return node.model.identifier === id;
     });
   }
-  private OnPlayContent(content: { title: string, id: string }) {
+  private OnPlayContent(content: { title: string, id: string }, showExtContentMsg ?: boolean) {
     if (content && content.id && ((this.enrolledCourse && !this.flaggedCourse &&
       this.enrolledBatchInfo.status > 0) || this.courseStatus === 'Unlisted'
       || this.permissionService.checkRolesPermissions(['COURSE_MENTOR', 'CONTENT_REVIEWER'])
@@ -248,7 +256,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       this.contentId = content.id;
       this.setTelemetryContentImpression();
       this.setContentNavigators();
-      this.playContent(content);
+      this.playContent(content, showExtContentMsg);
     } else {
       console.log('content not playable');
     }
@@ -258,7 +266,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     this.prevPlaylistItem = this.contentDetails[index - 1];
     this.nextPlaylistItem = this.contentDetails[index + 1];
   }
-  private playContent(data: any): void {
+  private playContent(data: any, showExtContentMsg ?: boolean): void {
     this.enableContentPlayer = false;
     this.loader = true;
     const options: any = { courseId: this.courseId };
@@ -270,6 +278,13 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.setContentInteractData(config);
         this.loader = false;
         this.playerConfig = config;
+          if ((config.metadata.mimeType === this.configService.appConfig.PLAYER_CONFIG.MIME_TYPE.xUrl && !(this.istrustedClickXurl))
+          || (config.metadata.mimeType === this.configService.appConfig.PLAYER_CONFIG.MIME_TYPE.xUrl && showExtContentMsg)
+        ) {
+            setTimeout(() => {
+              this.showExtContentMsg = true;
+            }, 5000);
+          }
         this.enableContentPlayer = true;
         this.contentTitle = data.title;
         this.breadcrumbsService.setBreadcrumbs([{ label: this.contentTitle, url: '' }]);
@@ -284,6 +299,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       queryParams: { 'contentId': content.id },
       relativeTo: this.activatedRoute
     };
+    const playContentDetail = this.findContentById(content.id);
+    if (playContentDetail.model.mimeType === this.configService.appConfig.PLAYER_CONFIG.MIME_TYPE.xUrl) {
+      this.showExtContentMsg = false;
+      this.istrustedClickXurl = true;
+      this.externalUrlPreviewService.generateRedirectUrl(playContentDetail.model, this.userService.userid, this.courseId, this.batchId);
+    }
     if ((this.batchId && !this.flaggedCourse && this.enrolledBatchInfo.status > 0)
       || this.courseStatus === 'Unlisted' || this.permissionService.checkRolesPermissions(['COURSE_MENTOR', 'CONTENT_REVIEWER'])
       || this.courseHierarchy.createdBy === this.userService.userid) {
