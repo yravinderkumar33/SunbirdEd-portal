@@ -219,7 +219,7 @@
       "webm": "video/webm",
       "xUrl": "text/x-url"
     },
-    "baseURL": "https://cdn.ntp.net.in/player/test.html"
+    "baseURL": "https://cdn.ntp.net.in/player/preview/preview.html"
   },
   "WORKSPACE": {
     "PAGE_LIMIT": 9,
