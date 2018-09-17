@@ -219,7 +219,7 @@
       "webm": "video/webm",
       "xUrl": "text/x-url"
     },
-    "baseURL": "/content/preview/preview.html?webview=true"
+    "baseURL": "https://dev-sunbird-temp.azureedge.net/player/test.html"
   },
   "WORKSPACE": {
     "PAGE_LIMIT": 9,
