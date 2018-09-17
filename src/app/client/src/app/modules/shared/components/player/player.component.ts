@@ -38,7 +38,7 @@ export class PlayerComponent implements OnInit, OnChanges, OnDestroy {
    * Emits event when content starts playing and end event when content was played/read completely
    */
   showPlayer () {
-    const iFrameSrc = this.configService.appConfig.PLAYER_CONFIG.baseURL + '&build_number=' + this.buildNumber;
+    const iFrameSrc = this.configService.appConfig.PLAYER_CONFIG.baseURL;
     setTimeout(() => {
       this.contentIframe.nativeElement.src = iFrameSrc;
       this.contentIframe.nativeElement.onload = () => {
