@@ -70,7 +70,7 @@ gulp.task('client:dist', (cb) => {
 })
 
 gulp.task('client:gzip', () => {
-    return gulp.src(['./dist/*.js', './dist/*.css'])
+    return gulp.src(['./dist/*.js', './dist/telemetry/*.js', './dist/*.css'])
         .pipe(gzip())
         .pipe(gulp.dest('./dist'))
 })
@@ -133,7 +133,7 @@ gulp.task('deploy',
         // cleanClient,
         'client:install',
         'client:dist',
-        // compress,
+        compress,
         'update:index:file',
         'clean:index:file',
         'prepare:app:dist')

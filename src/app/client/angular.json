@@ -19,7 +19,9 @@
             "assets": [
               "src/assets",
               "src/thirdparty",
-              "src/favicon.png"
+              "src/favicon.png",
+              { "glob": "*.js", "input": "node_modules/@project-sunbird/telemetry-sdk", 
+                "output": "/telemetry/" }
             ],
             "styles": [
               "node_modules/datatables.net-dt/css/jquery.dataTables.min.css",
@@ -36,7 +38,6 @@
               "src/assets/libs/iziToast/iziToast.min.js",
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/slick-carousel/slick/slick.min.js",
-              "node_modules/@project-sunbird/telemetry-sdk/index.js",
               "src/assets/libs/semantic.min.js",
               "node_modules/jquery.fancytree/dist/jquery.fancytree-all-deps.min.js"
             ]
