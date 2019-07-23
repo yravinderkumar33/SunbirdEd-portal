@@ -11,6 +11,7 @@ EkTelemetry.getFingerPrint(function (deviceId) {
   }
   showLoader();
   getExperimentDetails(deviceId, function (err, data) {
+    console.log('getExperimentDetails result', err);
     removeLoader()
     if(err){
       return;
@@ -25,13 +26,6 @@ function getExperimentDetails(deviceId, cb) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', deviceRegisterApi + deviceId);
   xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.onload = function () {
-    if (xhr.status == 200) {
-      cb(null, xhr.responseText)
-    } else {
-      cb('error')
-    }
-  };
   xhr.send(JSON.stringify({
     id: appId,
     ver: portalVersion,
@@ -42,11 +36,22 @@ function getExperimentDetails(deviceId, cb) {
     request: {
       did: deviceId,
       ext: {
-        userid: userId,
+        // userid: userId,
         url: window.location.href
       }
     }
   }));
+  console.log('calling device register');
+  xhr.onreadystatechange = function (oEvent) { 
+    console.log('------onreadystatechange', xhr.status, oEvent) 
+    if (xhr.readyState === 4) {
+        if (xhr.status === 200) { 
+          cb(null, xhr.responseText) 
+        } else {  
+          cb('error')  
+        }  
+    }  
+};
 }
 function showLoader() {
   var style = document.createElement('style');
@@ -57,6 +62,7 @@ function showLoader() {
     animation: spin 1s linear infinite;
     border-top: 5px solid #555;
     border-radius: 50%;
+    z-index: 9999;
     width: 50px;
     height: 50px;
     position: absolute;
