@@ -1,6 +1,6 @@
 <div class="graph-filters">
   <form [formGroup]="filtersFormGroup" class="ui form">
-    <div class="d-flex flex-w-wrap reset-filter-section">
+    <div class="d-flex flex-w-wrap reset-filter-section" *ngIf="showFilters">
       <div class="d-flex flex-ai-center">{{resourceService?.frmelmnts?.lbl?.graphStat }}: <sui-checkbox
           class="toggle ml-8" appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
           [telemetryInteractEdata]="setTelemetryInteractEdata('graph-statistics')"
@@ -19,7 +19,7 @@
         <button appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
           [telemetryInteractEdata]="setTelemetryInteractEdata('reset-filters')"
           [telemetryInteractCdata]="telemetryCdata" class="sb-btn sb-btn-outline-primary sb-btn-normal"
-          (click)="resetFilter()">
+          *ngIf="filters.length" (click)="resetFilter()">
           {{resourceService?.frmelmnts?.btn?.reset}} {{resourceService?.frmelmnts?.lbl?.filters  }}
         </button>
       </div>
@@ -73,8 +73,7 @@
   <div *ngIf="showStats">
     <div _ngcontent-c14="" class="graph-statistics py-16" *ngFor="let stat of loadash.keys(resultStatistics)">
       {{stat}} <div class="sb-label sb-label-table sb-label-primary-100 mr-4"
-        *ngFor="let op of loadash.keys(resultStatistics[stat]) ; let l = last"> {{op}} : {{resultStatistics[stat][op]}}
-        <span *ngIf="!l">,</span>
+        *ngFor="let op of loadash.keys(resultStatistics[stat])"> {{op}} : {{resultStatistics[stat][op]}}
       </div>
     </div>
   </div>
@@ -88,5 +87,5 @@
     </div>
   </div>
   <canvas baseChart [datasets]="datasets" [labels]="chartLabels" [options]="chartOptions" [chartType]="chartType"
-    [legend]="legend"></canvas>
+    [legend]="legend" [colors]="chartColors"></canvas>
 </div>

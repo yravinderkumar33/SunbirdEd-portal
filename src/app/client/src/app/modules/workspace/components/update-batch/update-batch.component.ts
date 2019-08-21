@@ -132,7 +132,7 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
           return this.fetchBatchDetails();
         }),
         takeUntil(this.unsubscribe))
-      .subscribe((data) => {
+      .subscribe((data: any) => {
         this.courseId = data.batchDetails.courseId;
         this.batchService.getCourseHierarchy(this.courseId).subscribe((courseDetails) => {
           if (courseDetails.createdBy === this.userService.userid) {
@@ -141,6 +141,9 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
         });
         this.showUpdateModal = true;
         this.batchDetails = data.batchDetails;
+        if (this.batchDetails.enrollmentType !== 'open' && data.participants && data.participants.length > 0) {
+          this.batchDetails.participants = data.participants;
+        }
         if (this.batchDetails.createdBy !== this.userService.userid) {
           this.showFormInViewMode = true;
         }
@@ -151,7 +154,7 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
         this.fetchParticipantDetails();
         this.initDropDown();
       }, (err) => {
-        if (err.error && err.error.params.errmsg) {
+        if (err.error && err.error.params && err.error.params.errmsg) {
           this.toasterService.error(err.error.params.errmsg);
         } else {
           this.toasterService.error(this.resourceService.messages.fmsg.m0054);
@@ -163,7 +166,8 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
     return combineLatest(
       this.batchService.getUserList(),
       this.batchService.getUpdateBatchDetails(this.batchId),
-      (userDetails, batchDetails) => ({ userDetails, batchDetails })
+      this.batchService.getParticipantList({'request': {'batch': {'batchId': this.batchId}}}),
+      (userDetails, batchDetails, participants) => ({userDetails, batchDetails, participants})
     );
   }
   /**
@@ -172,10 +176,8 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeUpdateForm(): void {
     const endDate = this.batchDetails.endDate ? new Date(this.batchDetails.endDate) : null;
     const enrollmentEndDate = this.batchDetails.enrollmentEndDate ? new Date(this.batchDetails.enrollmentEndDate) : null;
-    if (enrollmentEndDate) {
-      this.pickerMinDateForEnrollmentEndDate = enrollmentEndDate;
-    } else if (!moment(this.batchDetails.startDate).isBefore(moment(this.pickerMinDate).format('YYYY-MM-DD'))) {
-      this.pickerMinDateForEnrollmentEndDate = new Date(this.batchDetails.startDate);
+    if (!moment(this.batchDetails.startDate).isBefore(moment(this.pickerMinDate).format('YYYY-MM-DD'))) {
+      this.pickerMinDateForEnrollmentEndDate = new Date(new Date(this.batchDetails.startDate).setHours(0, 0, 0, 0));
     } else {
       this.pickerMinDateForEnrollmentEndDate = this.pickerMinDate;
     }
@@ -194,6 +196,17 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
         this.disableSubmitBtn = false;
       } else {
         this.disableSubmitBtn = true;
+      }
+    });
+
+    this.batchUpdateForm.get('startDate').valueChanges.subscribe(value => {
+      const startDate = moment(value);
+      if (startDate.isValid()) {
+        if (!moment(startDate).isBefore(moment(this.pickerMinDate).format('YYYY-MM-DD'))) {
+          this.pickerMinDateForEnrollmentEndDate = new Date(new Date(startDate).setHours(0, 0, 0, 0));
+        } else {
+          this.pickerMinDateForEnrollmentEndDate = this.pickerMinDate;
+        }
       }
     });
   }
@@ -351,6 +364,7 @@ export class UpdateBatchComponent implements OnInit, OnDestroy, AfterViewInit {
     const endDate = this.batchUpdateForm.value.endDate && moment(this.batchUpdateForm.value.endDate).format('YYYY-MM-DD');
     const requestBody = {
       id: this.batchId,
+      courseId: this.courseId,
       name: this.batchUpdateForm.value.name,
       description: this.batchUpdateForm.value.description,
       enrollmentType: this.batchUpdateForm.value.enrollmentType,

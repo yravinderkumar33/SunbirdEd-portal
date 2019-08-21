@@ -89,9 +89,9 @@ module.exports = (app, keycloak) => {
   })
 
   app.all(['/', '/get', '/:slug/get', '/:slug/get/dial/:dialCode',  '/get/dial/:dialCode', '/explore',
-    '/explore/*', '/:slug/explore', '/:slug/explore/*', '/play/*', '/explore-course',
-    '/explore-course/*', '/:slug/explore-course', '/:slug/explore-course/*',
-    '/:slug/signup', '/signup', '/:slug/sign-in/*', '/sign-in/*', '/download/*', '/:slug/download/*'], redirectTologgedInPage, indexPage(false))
+    '/explore/*', '/:slug/explore', '/:slug/explore/*', '/play/*', '/explore-course', '/explore-course/*',
+    '/:slug/explore-course', '/:slug/explore-course/*', '/:slug/signup', '/signup', '/:slug/sign-in/*',
+    '/sign-in/*', '/download/*', '/:slug/download/*', '/certs/*', '/recover/*'], redirectTologgedInPage, indexPage(false))
 
   app.all(['*/dial/:dialCode', '/dial/:dialCode'], (req, res) => res.redirect('/get/dial/' + req.params.dialCode + '?source=scan'))
 
@@ -153,6 +153,7 @@ function getLocals(req) {
   locals.offlineDesktopAppReleaseDate = envHelper.sunbird_portal_offline_app_release_date
   locals.offlineDesktopAppSupportedLanguage = envHelper.sunbird_portal_offline_supported_languages,
   locals.offlineDesktopAppDownloadUrl = envHelper.sunbird_portal_offline_app_download_url
+  locals.logFingerprintDetails = envHelper.LOG_FINGERPRINT_DETAILS
   return locals
 }
 

@@ -1,15 +1,16 @@
 <sui-modal 
   [mustScroll]="true" 
-  [isClosable]="true" 
+  [isClosable]="false" 
   [transitionDuration]="0" 
   [size]="'normal'" 
-  class="sb-modal"
+  class="sb-modal sb-batch-modal"
   appBodyScroll 
   *ngIf='showUpdateModal' 
   (dismissed)="redirect()" 
   #updateBatchModal
   >
   <!--Header-->
+  <i class="close icon" (click)="redirect()"></i>
   <div class="sb-modal-header">
     <span *ngIf="!showFormInViewMode">{{resourceService?.frmelmnts?.intxt?.t0007}}</span>
     <span *ngIf="showFormInViewMode">{{resourceService?.frmelmnts?.intxt?.t0015}}</span>
@@ -42,14 +43,14 @@
           <label for="Enrollment Type">{{resourceService?.frmelmnts?.lbl?.natureofbatch}}</label>
         </div>
         <div class="sb-radio-btn-checkbox sb-radio-btn-primary">
-          <input [attr.disabled]="(batchDetails.status !== 0 || showFormInViewMode) ? true : null" type="radio"
+          <input id="update-invite-only" [attr.disabled]="(batchDetails.status !== 0 || showFormInViewMode) ? true : null" type="radio"
             name="enrollmentType" value='invite-only' formControlName="enrollmentType">
-          <label>Invite-only</label>
+          <label for="update-invite-only">Invite-only</label>
         </div>
         <div class="sb-radio-btn-checkbox sb-radio-btn-primary" *ngIf="courseCreator">
-          <input [attr.disabled]="( batchDetails.status !== 0 || showFormInViewMode ) ? true : null" type="radio"
+          <input id="update-open" [attr.disabled]="( batchDetails.status !== 0 || showFormInViewMode ) ? true : null" type="radio"
             value='open' name="enrollmentType" formControlName="enrollmentType">
-          <label>Open</label>
+          <label for="update-open">Open</label>
         </div>
       </div>
 
@@ -101,7 +102,7 @@
         <div class="createbatchdropdown ui fluid multiple search selection dropdown" id="mentors" [ngClass]="{ 'disabled': batchDetails.status === 2 || showFormInViewMode }">
           <input id="mentorSelList">
           <i class="dropdown icon"></i>
-          <div class="default text">{{resourceService?.frmelmnts?.intxt?.t0006}}</div>
+          <div class="default text">{{resourceService?.frmelmnts?.intxt?.t0005}}</div>
           <div class="menu">
             <div class="item" [attr.data-value]="mentor.id" *ngFor="let mentor of mentorList">
               <img class="ui mini avatar image" src="{{mentor.avatar || 'assets/images/user_logo.png' | cdnprefixurl}}">

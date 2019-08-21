@@ -34,7 +34,7 @@ let envVariables = {
   CACHE_STORE: env.sunbird_cache_store || 'memory',
   CACHE_TTL: env.sunbird_cache_ttl || 1800,
   ANDROID_APP_URL: env.sunbird_android_app_url || 'http://www.sunbird.org',
-  BUILD_NUMBER: env.sunbird_build_number || packageObj.version + '.' + packageObj.buildHash,
+  BUILD_NUMBER: packageObj.version + '.' + packageObj.buildHash,
   TELEMETRY_SERVICE_LOCAL_URL: env.sunbird_telemetry_service_local_url || 'http://telemetry-service:9001/',
   PORTAL_API_CACHE_TTL: env.sunbird_api_response_cache_ttl || '600',
   RESPONSE_CACHE_TTL: env.sunbird_response_cache_ttl || '180', // used in tenant helper to cache the tenant response info
@@ -92,7 +92,8 @@ let envVariables = {
   KEYCLOAK_ANDROID_CLIENT: {
     clientId: env.sunbird_android_keycloak_client_id || 'android',
   },
-  EXPERIMENT_BASE_URL: env.sunbird_experiment_base_url
+  EXPERIMENT_BASE_URL: env.sunbird_experiment_base_url,
+  LOG_FINGERPRINT_DETAILS: env.sunbird_log_fingerprint_details || 'true'
 }
 
 envVariables.PORTAL_CASSANDRA_URLS = (env.sunbird_cassandra_urls && env.sunbird_cassandra_urls !== '')

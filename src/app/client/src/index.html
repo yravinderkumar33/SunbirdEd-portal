@@ -95,6 +95,9 @@
   <input type="hidden" id="offlineDesktopAppDownloadUrl" value="<%=offlineDesktopAppDownloadUrl%>" />
   <% } %>
   <script type="text/javascript" src="/assets/libs/experimentHelper.js"></script>
+  <% if (logFingerprintDetails) { %>
+    <input type="hidden" id="logFingerprintDetails" value="<%=logFingerprintDetails%>" />
+  <% } %>
   <app-root></app-root>
 </body>
 

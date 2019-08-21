@@ -76,6 +76,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   instance: string;
   resourceDataSubscription: any;
   shepherdData: Array<any>;
+  private fingerprintInfo: any;
+  hideHeaderNFooter = true;
   constructor(private cacheService: CacheService, private browserCacheTtlService: BrowserCacheTtlService,
     public userService: UserService, private navigationHelperService: NavigationHelperService,
     private permissionService: PermissionService, public resourceService: ResourceService,
@@ -99,7 +101,14 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   handleLogin() {
     window.location.reload();
   }
+  handleHeaderNFooter() {
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(data => {
+      this.hideHeaderNFooter = _.get(this.activatedRoute, 'snapshot.firstChild.firstChild.data.hideHeaderNFooter') ||
+        _.get(this.activatedRoute, 'snapshot.firstChild.firstChild.firstChild.data.hideHeaderNFooter');
+    });
+  }
   ngOnInit() {
+    this.handleHeaderNFooter();
     this.resourceService.initialize();
     combineLatest(this.setSlug(), this.setDeviceId()).pipe(
       mergeMap(data => {
@@ -119,6 +128,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setPortalTitleLogo();
         this.telemetryService.initialize(this.getTelemetryContext());
         this.logCdnStatus();
+        this.setFingerPrintTelemetry();
         this.checkTncAndFrameWorkSelected();
         this.initApp = true;
       }, error => {
@@ -128,8 +138,30 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     this.changeLanguageAttribute();
     if (this.isOffline) {
       document.body.classList.add('sb-offline');
-     }
+    }
 }
+
+setFingerPrintTelemetry() {
+  const printFingerprintDetails  = (<HTMLInputElement>document.getElementById('logFingerprintDetails'))
+  ? (<HTMLInputElement>document.getElementById('logFingerprintDetails')).value : 'false';
+    if (printFingerprintDetails !== 'true') {
+      return;
+    }
+
+    if (this.fingerprintInfo) {
+      const event = {
+        context: {
+          env : 'app'
+        },
+        edata : {
+          type : 'fingerprint_info',
+          data : JSON.stringify(this.fingerprintInfo)
+        }
+      };
+      this.telemetryService.exData(event);
+    }
+  }
+
   logCdnStatus() {
     const isCdnWorking  = (<HTMLInputElement>document.getElementById('cdnWorking'))
     ? (<HTMLInputElement>document.getElementById('cdnWorking')).value : 'no';
@@ -187,7 +219,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
    * fetch device id using fingerPrint2 library.
    */
   public setDeviceId(): Observable<string> {
-    return new Observable(observer => this.telemetryService.getDeviceId(deviceId => {
+    return new Observable(observer => this.telemetryService.getDeviceId((deviceId, components, version) => {
+        this.fingerprintInfo = {deviceId, components, version};
         (<HTMLInputElement>document.getElementById('deviceId')).value = deviceId;
         this.deviceRegisterService.initialize();
         observer.next(deviceId);

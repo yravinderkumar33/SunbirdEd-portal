@@ -1,15 +1,16 @@
 <sui-modal 
   [mustScroll]="true" 
-  [isClosable]="true" 
+  [isClosable]="false" 
   [transitionDuration]="0" 
   [size]="'normal'" 
-  class="sb-modal"
+  class="sb-modal sb-batch-modal"
   appBodyScroll 
   *ngIf='showUpdateModal' 
   (dismissed)="redirect()" 
   #updateBatchModal>
 
   <!--Header-->
+  <i class="close icon" (click)="redirect()"></i>
   <div class="sb-modal-header">
     <span *ngIf="!showFormInViewMode">{{resourceService?.frmelmnts?.intxt?.t0007}}</span>
     <span *ngIf="showFormInViewMode">{{resourceService?.frmelmnts?.intxt?.t0015}}</span>
@@ -40,12 +41,12 @@
             <label for="Enrollment Type">{{resourceService?.frmelmnts?.lbl?.natureofbatch}}</label>
           </div>
           <div class="sb-radio-btn-checkbox sb-radio-btn-primary">
-              <input class="sb-form-control" [attr.disabled]="batchDetails.status !== 0 ? true : null" type="radio" name="enrollmentType" value='invite-only' formControlName="enrollmentType">
-              <label>{{resourceService?.frmelmnts?.lbl?.inviteonly}}</label>
+              <input id="update-course-invite-only" [attr.disabled]="batchDetails.status !== 0 ? true : null" type="radio" name="enrollmentType" value='invite-only' formControlName="enrollmentType">
+              <label for="update-course-invite-only">{{resourceService?.frmelmnts?.lbl?.inviteonly}}</label>
           </div>
           <div class="sb-radio-btn-checkbox sb-radio-btn-primary" *ngIf="courseCreator">
-              <input class="sb-form-control" [attr.disabled]="batchDetails.status !== 0 ? true : null" type="radio" value='open' name="enrollmentType" formControlName="enrollmentType">
-            <label>{{resourceService?.frmelmnts?.lbl?.open}}</label>
+              <input id="update-course-open" [attr.disabled]="batchDetails.status !== 0 ? true : null" type="radio" value='open' name="enrollmentType" formControlName="enrollmentType">
+            <label for="update-course-open">{{resourceService?.frmelmnts?.lbl?.open}}</label>
           </div>
         </div>
         <div class="d-flex flex-w-wrap">
@@ -88,7 +89,7 @@
             </div>
             </div>
           </div>
-    
+
       <div class="ui tweleve wide column mb-20" *ngIf="showLoader">
         <app-loader></app-loader>
       </div>
@@ -98,7 +99,7 @@
           [ngClass]="{ 'disabled' : showFormInViewMode }">
           <input id="mentorSelList">
           <i class="dropdown icon"></i>
-          <div class="default text">{{resourceService?.frmelmnts?.intxt?.t0006}}</div>
+          <div class="default text">{{resourceService?.frmelmnts?.intxt?.t0005}}</div>
           <div class="menu">
             <div class="item" [attr.data-value]="mentor.id" *ngFor="let mentor of mentorList">
               <img class="ui mini avatar image" src="{{mentor.avatar || 'assets/images/user_logo.png' | cdnprefixurl}}"> {{mentor.name}}{{mentor.otherDetail}}
@@ -129,12 +130,13 @@
           </div>
         </div>
         <small *ngIf="batchDetails.participants && batchDetails.participants.length > 100" class="sb-color-primary d-flex pt-4">{{resourceService?.frmelmnts?.lbl?.contactStateAdmin}}</small>
-      </div>      
+      </div>
       <div class="sb-field-group mb-8" *ngIf="batchUpdateForm.value.enrollmentType !== 'open' && selectedParticipants.length > 0 && (batchDetails.participants && batchDetails.participants.length <= 100)">
         <label>{{resourceService?.frmelmnts?.lbl?.batchparticipants}}</label>
         <a class="ui label mt-5" *ngFor="let user of selectedParticipants">
           <img class="ui right spaced avatar image" src="{{user.avatar || 'assets/images/user_logo.png' | cdnprefixurl}}"> {{user.name}}{{user.otherDetail}}
-          <i class="delete icon" *ngIf="batchDetails.status === 0" (click)="removeParticipant(user)"></i>
+          <!-- TODO: Will be enabled in future
+          <i class="delete icon" *ngIf="batchDetails.status === 0" (click)="removeParticipant(user)"></i>-->
         </a>
       </div>
     </form>
@@ -143,8 +145,8 @@
 
   <!--Actions-->
   <div class="sb-modal-actions">
-    <button 
-      class="sb-btn sb-btn-normal sb-btn-primary" 
+    <button
+      class="sb-btn sb-btn-normal sb-btn-primary"
       [disabled]="disableSubmitBtn || showFormInViewMode"
       appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
       [telemetryInteractEdata]="updateBatchInteractEdata" [telemetryInteractCdata]="telemetryCdata"
@@ -152,9 +154,9 @@
       >
       {{resourceService?.frmelmnts?.btn?.update}}
     </button>
-    <button 
-      class="sb-btn sb-btn-normal sb-btn-outline-primary" 
-      (click)="resetForm()" 
+    <button
+      class="sb-btn sb-btn-normal sb-btn-outline-primary"
+      (click)="resetForm()"
       [disabled]="showFormInViewMode"
       appTelemetryInteract [telemetryInteractObject]="telemetryInteractObject"
       [telemetryInteractEdata]="clearButtonInteractEdata" [telemetryInteractCdata]="telemetryCdata"
