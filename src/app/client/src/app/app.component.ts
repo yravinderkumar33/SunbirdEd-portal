@@ -10,7 +10,7 @@ import { UserService, PermissionService, CoursesService, TenantService, OrgDetai
   SessionExpiryInterceptor } from '@sunbird/core';
 import * as _ from 'lodash-es';
 import { ProfileService } from '@sunbird/profile';
-import { Observable, of, throwError, combineLatest } from 'rxjs';
+import { Observable, of, throwError, combineLatest, Subscription } from 'rxjs';
 import { first, filter, mergeMap, tap, map } from 'rxjs/operators';
 import { CacheService } from 'ng2-cache-service';
 import { DOCUMENT } from '@angular/platform-browser';
@@ -80,6 +80,7 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   hideHeaderNFooter = true;
   queryParams: any;
   telemetryContextData: any ;
+  deviceRegisterSubscription: Subscription;
   constructor(private cacheService: CacheService, private browserCacheTtlService: BrowserCacheTtlService,
     public userService: UserService, private navigationHelperService: NavigationHelperService,
     private permissionService: PermissionService, public resourceService: ResourceService,
@@ -120,9 +121,10 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     );
     this.handleHeaderNFooter();
     this.resourceService.initialize();
-    combineLatest(queryParams$, this.setSlug(), this.setDeviceId())
+    combineLatest(queryParams$, this.setSlug())
     .pipe(
       mergeMap(data => {
+        this.RegisterDeviceId();
         this.navigationHelperService.initialize();
         this.userService.initialize(this.userService.loggedIn);
         if (this.userService.loggedIn) {
@@ -226,21 +228,8 @@ setFingerPrintTelemetry() {
     this.checkFrameworkSelected();
   }
 
-  /**
-   * fetch device id using fingerPrint2 library.
-   */
-  public setDeviceId(): Observable<string> {
-      return new Observable(observer => this.telemetryService.getDeviceId((deviceId, components, version) => {
-          this.fingerprintInfo = {deviceId, components, version};
-          if (this.isOffline) {
-            deviceId = <HTMLInputElement>document.getElementById('deviceId') ?
-                        (<HTMLInputElement>document.getElementById('deviceId')).value : deviceId;
-          }
-          (<HTMLInputElement>document.getElementById('deviceId')).value = deviceId;
-          this.deviceRegisterService.initialize();
-          observer.next(deviceId);
-          observer.complete();
-        }));
+  public RegisterDeviceId(){
+    this.deviceRegisterSubscription = this.deviceRegisterService.initialize().subscribe();
   }
   /**
    * set slug from url only for Anonymous user.
@@ -472,6 +461,9 @@ setFingerPrintTelemetry() {
   ngOnDestroy() {
     if (this.resourceDataSubscription) {
       this.resourceDataSubscription.unsubscribe();
+    }
+    if(this.deviceRegisterSubscription){
+      this.deviceRegisterSubscription.unsubscribe();
     }
   }
   interpolateInstance(message) {
