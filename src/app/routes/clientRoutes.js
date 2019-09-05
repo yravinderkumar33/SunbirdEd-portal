@@ -95,8 +95,21 @@ module.exports = (app, keycloak) => {
   app.post('/experiment', bodyParser.urlencoded({ extended: false }),
     bodyParser.json({ limit: '50mb' }), async (req, res) => {
       const requestBody = _.get(req, 'body');
-      const experimentDetails = await experimentHelper.registerDeviceId(_.get(requestBody, 'did'), _.get(requestBody, 'uaspec'));
-      res.json(experimentDetails);
+      try {
+        const experimentDetails = await experimentHelper.registerDeviceId(_.get(requestBody, 'did'), _.get(requestBody, 'uaspec'));
+        if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
+          const experiments = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
+          if (!experiments) {
+            res.status(200).json(experimentDetails);
+          } else {
+            // load the experiment app 
+          }
+        } else {
+          res.status(200).json(experimentDetails);
+        }
+      } catch (err) {
+        console.log('errror');
+      }
     })
 
   app.all(['/', '/get', '/:slug/get', '/:slug/get/dial/:dialCode', '/get/dial/:dialCode', '/explore',
