@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, combineLatest } from 'rxjs';
+import { Observable, of, combineLatest, throwError, empty } from 'rxjs';
 import { Injectable, Injector } from '@angular/core';
 import * as _ from 'lodash-es';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, catchError, tap } from 'rxjs/operators';
 import { DeviceDetectorService } from 'ngx-device-detector';
+import { Router } from '@angular/router';
+import { isNull } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
   providedIn: 'root'
@@ -11,21 +13,45 @@ import { DeviceDetectorService } from 'ngx-device-detector';
 export class StartupService {
   private _fingerprintInfo: any;
   private http: HttpClient;
+  private router: Router;
 
   constructor(private injector: Injector, private deviceDetectorService: DeviceDetectorService) { }
 
   public init() {
     this.http = this.injector.get(HttpClient);
+    this.router = this.injector.get(Router);
     return this.callDeviceRegisterApi()
-    .toPromise()
-    // return Promise.resolve(1);
+      .toPromise();
   };
-
 
   callDeviceRegisterApi() {
     return combineLatest(this.fetchDeviceId(), this.fetchUaspec())
       .pipe(
-        mergeMap(deviceInfo => this.registerDeviceId(deviceInfo))
+        mergeMap(deviceInfo => this.registerDeviceId(deviceInfo)),
+        tap(experimentDetails => {
+          experimentDetails['result'].actions = [{
+            type: "experiment",
+            data: {
+              "id": "testExperiment",
+              "name": "",
+              "startDate": "",
+              "endDate": "",
+              "key": ""
+            }
+          }];
+          if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
+            const experiment = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
+            const expIdElement = (<HTMLInputElement>document.getElementById('expId'));
+            const expID = expIdElement ? expIdElement.value : undefined;
+            if (experiment && window && _.get(window, 'location') && !expID) {
+              window.location.reload();
+            }
+          }
+        }),
+        catchError(error => {
+          console.error('device Register failed', error);
+          return empty();
+        })
       )
   }
 
@@ -66,6 +92,14 @@ export class StartupService {
       did: did || _.get(this._fingerprintInfo, 'deviceId'),
       uaspec: uaspec
     }
-    return this.http.post('/experiment', request)
+    return this.http.post('/experiment', request).pipe(
+      mergeMap(apiResponse => {
+        if (_.get(apiResponse, 'responseCode') === 'OK') {
+          return of(apiResponse);
+        } else {
+          return throwError(apiResponse);
+        }
+      })
+    )
   }
 }

@@ -14,9 +14,9 @@ const express = require('express'),
   pathMap = {},
   cdnIndexFileExist = fs.existsSync(path.join(__dirname, '../dist', 'index_cdn.ejs')),
   proxyUtils = require('../proxy/proxyUtils.js'),
-  bodyParser = require('body-parser')
-
-
+  bodyParser = require('body-parser'),
+  ejs = require('ejs'),
+  requestPromise = require('request-promise');
 
 logger.info({ msg: `CDN index file exist: ${cdnIndexFileExist}` });
 
@@ -95,27 +95,36 @@ module.exports = (app, keycloak) => {
   app.post('/experiment', bodyParser.urlencoded({ extended: false }),
     bodyParser.json({ limit: '50mb' }), async (req, res) => {
       const requestBody = _.get(req, 'body');
-      try {
-        const experimentDetails = await experimentHelper.registerDeviceId(_.get(requestBody, 'did'), _.get(requestBody, 'uaspec'));
-        if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
-          const experiments = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
-          if (!experiments) {
-            res.status(200).json(experimentDetails);
-          } else {
-            // load the experiment app 
+      const experimentDetails = await experimentHelper.registerDeviceId(_.get(requestBody, 'did'), _.get(requestBody, 'uaspec'));
+      if (_.get(experimentDetails, 'responseCode') === 'OK') {
+        experimentDetails.result.actions = [{
+          type: "experiment", // experiment/notification/configUpdate etc
+          data: {
+            "id": "experiment2", // experiment ID
+            "name": "", //experiment name
+            "startDate": "",
+            "endDate": "",
+            "key": "" // deployment key for mobile or experiment folder id for portal
           }
+        }];
+        if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
+          const experiment = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
+          if (experiment) {
+            req.session.experimentId = _.get(experiment, 'data.id');
+          }
+          res.status(200).json(experimentDetails);
         } else {
           res.status(200).json(experimentDetails);
         }
-      } catch (err) {
-        console.log('errror');
+      } else {
+        res.status(500).json(experimentDetails);
       }
     })
 
   app.all(['/', '/get', '/:slug/get', '/:slug/get/dial/:dialCode', '/get/dial/:dialCode', '/explore',
     '/explore/*', '/:slug/explore', '/:slug/explore/*', '/play/*', '/explore-course', '/explore-course/*',
     '/:slug/explore-course', '/:slug/explore-course/*', '/:slug/signup', '/signup', '/:slug/sign-in/*',
-    '/sign-in/*', '/download/*', '/accountMerge/*', '/:slug/download/*', '/certs/*', '/recover/*'], redirectTologgedInPage, indexPage(false))
+    '/sign-in/*', '/download/*', '/accountMerge/*', '/:slug/download/*', '/certs/*', '/recover/*'], checkForExperimentApp, redirectTologgedInPage, indexPage(false))
 
   app.all(['*/dial/:dialCode', '/dial/:dialCode'], (req, res) => res.redirect('/get/dial/' + req.params.dialCode + '?source=scan'))
 
@@ -124,7 +133,7 @@ module.exports = (app, keycloak) => {
   app.all(['/announcement', '/announcement/*', '/search', '/search/*',
     '/orgType', '/orgType/*', '/dashBoard', '/dashBoard/*',
     '/workspace', '/workspace/*', '/profile', '/profile/*', '/learn', '/learn/*', '/resources',
-    '/resources/*', '/myActivity', '/myActivity/*'], keycloak.protect(), indexPage(true))
+    '/resources/*', '/myActivity', '/myActivity/*'], keycloak.protect(), checkForExperimentApp, indexPage(true))
 
   app.all('/:tenantName', renderTenantPage)
 }
@@ -138,6 +147,7 @@ function getLocals(req) {
     locals.userId = null
     locals.sessionId = null
   }
+  locals.expId = _.get(req, 'experimentId') || null
   locals.cdnUrl = envHelper.PORTAL_CDN_URL
   locals.theme = envHelper.sunbird_theme
   locals.defaultPortalLanguage = envHelper.sunbird_default_language
@@ -209,8 +219,13 @@ const renderDefaultIndexPage = (req, res) => {
           }
         })
       }
+
       res.locals.cdnWorking = 'no';
-      res.render(path.join(__dirname, '../dist', 'index.ejs'))
+      if (_.get(req, 'experimentId')) {
+        loadExperimentApp(res);
+      } else {
+        res.render(path.join(__dirname, '../dist', 'index.ejs'))
+      }
     }
   }
 }
@@ -265,4 +280,23 @@ const redirectTologgedInPage = (req, res) => {
   } else {
     renderDefaultIndexPage(req, res)
   }
+}
+
+const checkForExperimentApp = async (req, res, next) => {
+  const experimentId = _.get(req, 'session.experimentId');
+  if (experimentId) {
+    const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../experiment/${experimentId}`));
+    if (isExperimentPathExists) {
+      req.session.experimentId = null;
+      req.experimentId = experimentId;
+    }
+  }
+  next();
+}
+
+
+const loadExperimentApp = (res) => {
+  requestPromise.get('http://localhost:3000/experiment/experiment2/index.ejs').then((data) => {
+    res.send(ejs.render(data, res.locals));
+  })
 }
