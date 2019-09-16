@@ -14,7 +14,7 @@ export class StartupService {
   private _fingerprintInfo: any;
   private http: HttpClient;
   private router: Router;
-
+  private experimentDetails: any;
   constructor(private injector: Injector, private deviceDetectorService: DeviceDetectorService) { }
 
   public init() {
@@ -29,21 +29,11 @@ export class StartupService {
       .pipe(
         mergeMap(deviceInfo => this.registerDeviceId(deviceInfo)),
         tap(experimentDetails => {
-          experimentDetails['result'].actions = [{
-            type: "experiment",
-            data: {
-              "id": "testExperiment",
-              "name": "",
-              "startDate": "",
-              "endDate": "",
-              "key": ""
-            }
-          }];
           if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
-            const experiment = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
+            this.experimentDetails = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
             const expIdElement = (<HTMLInputElement>document.getElementById('expId'));
             const expID = expIdElement ? expIdElement.value : undefined;
-            if (experiment && window && _.get(window, 'location') && !expID) {
+            if (this.experimentDetails && window && _.get(window, 'location') && !expID) {
               window.location.reload();
             }
           }

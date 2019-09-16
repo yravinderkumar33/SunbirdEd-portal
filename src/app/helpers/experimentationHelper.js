@@ -12,7 +12,8 @@ const experimentBlobUrl = 'http://localhost:3001/dist_experiment/';
 const registerDeviceId = async (deviceId, deviceInfo) => {
     const options = {
         method: 'POST',
-        url: envHelper.DEVICE_REGISTER_API + deviceId,
+        // url: envHelper.DEVICE_REGISTER_API + deviceId,
+        url: 'http://www.mocky.io/v2/5d7f2ad0330000204ef0af8c',
         headers: {},
         body: {
             id: envHelper.APPID,
@@ -38,7 +39,7 @@ const registerDeviceId = async (deviceId, deviceInfo) => {
     return request(options).then(apiResponse => {
         return apiResponse;
     }).catch(error => {
-        console.log('fetching device register api failed', error);
+        console.log('fetching device register api failed', _.get(error, 'message'));
         return {
             "id": "analytics.device-register",
             "ver": "1.0",
