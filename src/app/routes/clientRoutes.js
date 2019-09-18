@@ -76,10 +76,9 @@ module.exports = (app, keycloak) => {
 
     app.use('/dist', express.static(path.join(__dirname, '../dist'), { extensions: ['ejs'], index: false }))
 
-    app.use(express.static(path.join(__dirname, '../experiment'), { extensions: ['ejs'], index: false }))
-
-    app.use('/experiment', express.static(path.join(__dirname, '../experiment'), { extensions: ['ejs'], index: false }))
-
+    app.use(express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
+    app.use('/experiment', express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
+    
     app.use(express.static(path.join(__dirname, '../tenant'), { index: false }))
 
     app.use('/sunbird-plugins', express.static(path.join(__dirname, '../sunbird-plugins')))
@@ -105,7 +104,7 @@ module.exports = (app, keycloak) => {
                 if (_.get(experimentDetails, 'result.actions') && _.get(experimentDetails, 'result.actions').length > 0) {
                     const experiment = _.find(_.get(experimentDetails, 'result.actions'), action => _.get(action, 'type') === 'experiment');
                     if (experiment) {
-                        const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../experiment`));
+                        const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`));
                         if (isExperimentPathExists) {
                             req.session.experimentId = _.get(experiment, 'data.id');
                             reload = true;
@@ -220,7 +219,6 @@ const renderDefaultIndexPage = (req, res) => {
                 })
             }
             res.locals.cdnWorking = 'no';
-            console.log('............................................... loading default app')
             res.render(path.join(__dirname, '../dist', 'index.ejs'))
         }
     }
@@ -282,17 +280,18 @@ const checkForExperimentApp = (app) => {
     return (req, res, next) => {
         const experimentId = _.get(req, 'session.experimentId');
         if (experimentId) {
-            const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../experiment`));
+
+            const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`));
             req.session.experimentId = null;
             if (isExperimentPathExists) {
                 req.experimentId = experimentId;
                 req.includeUserDetail = false;
-                if (_.get(req, 'sessionID')) {
+                if (_.get(req, 'sessionID') && _.get(req, 'session.userId')) {
                     req.includeUserDetail = true;
                 }
                 res.locals = getLocals(req);
                 res.locals.cdnWorking = 'no';
-                res.render(path.join(__dirname, '../experiment', 'index.ejs'));
+                res.render(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`, 'index.ejs'));
             }
         } else {
             next();
