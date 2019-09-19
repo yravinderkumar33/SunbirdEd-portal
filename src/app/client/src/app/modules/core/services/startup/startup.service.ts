@@ -24,6 +24,11 @@ export class StartupService {
       .toPromise();
   };
 
+
+get experimentDetails(){
+    return this.experiment;
+}
+
   callDeviceRegisterApi() {
     return combineLatest(this.fetchDeviceId(), this.fetchUaspec())
       .pipe(

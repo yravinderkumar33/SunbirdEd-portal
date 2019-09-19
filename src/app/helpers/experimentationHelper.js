@@ -13,7 +13,7 @@ const registerDeviceId = async (deviceId, deviceInfo) => {
     const options = {
         method: 'POST',
         // url: envHelper.DEVICE_REGISTER_API + deviceId,
-        url: 'http://www.mocky.io/v2/5d7f2ad0330000204ef0af8c',
+        url: 'https://35cb87ad-ddf8-4758-ac1b-dfa5f8f5be41.mock.pstmn.io/experiment',
         headers: {},
         body: {
             id: envHelper.APPID,
