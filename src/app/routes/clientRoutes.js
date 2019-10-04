@@ -76,9 +76,9 @@ module.exports = (app, keycloak) => {
 
     app.use('/dist', express.static(path.join(__dirname, '../dist'), { extensions: ['ejs'], index: false }))
 
-    app.use(express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
-    app.use('/experiment', express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
-    
+    // app.use(express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
+    // app.use('/experiment/exp1', express.static(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`), { extensions: ['ejs'], index: false }))
+
     app.use(express.static(path.join(__dirname, '../tenant'), { index: false }))
 
     app.use('/sunbird-plugins', express.static(path.join(__dirname, '../sunbird-plugins')))
@@ -280,7 +280,6 @@ const checkForExperimentApp = (app) => {
     return (req, res, next) => {
         const experimentId = _.get(req, 'session.experimentId');
         if (experimentId) {
-
             const isExperimentPathExists = fs.existsSync(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`));
             req.session.experimentId = null;
             if (isExperimentPathExists) {
@@ -291,7 +290,14 @@ const checkForExperimentApp = (app) => {
                 }
                 res.locals = getLocals(req);
                 res.locals.cdnWorking = 'no';
-                res.render(path.join(__dirname, `../${envHelper.sunbird_experiment_base_url}`, 'index.ejs'));
+                requestPromise.get('http://172.16.0.230:9090/experiment/exp1/index.ejs').then(body => {
+                    let renderedFile = ejs.render(body, res.locals)
+                    res.send(renderedFile);
+                })
+                .catch(err => {
+                    console.log('error while fetching experiment dist ........................ ...........>>>>>')
+                    next();
+                })
             }
         } else {
             next();
