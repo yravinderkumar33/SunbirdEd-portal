@@ -126,12 +126,33 @@ export class DialCodeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.singleContentRedirect = this.searchResults[0]['name'];
       }
       this.showLoader = false;
+      this.logTelemetryEvents(true);
     }, error => {
       this.showLoader = false;
       this.toasterService.error(this.resourceService.messages.fmsg.m0049);
+      this.logTelemetryEvents(false);
     });
   }
-
+  logTelemetryEvents(status: boolean) {
+    let level = 'ERROR';
+    let msg = 'Search DialCode failed';
+    if (status) {
+      level = 'SUCCESS';
+      msg = 'Search DialCode was success';
+    }
+    const event = {
+      context: {
+        env: 'dialcode'
+      },
+      edata: {
+        type: 'search-dialcode',
+        level: level,
+        message: msg,
+        pageid: this.router.url.split('?')[0]
+      }
+    };
+    this.telemetryService.log(event);
+  }
   onScrollDown() {
     const startIndex = this.itemsToLoad;
     this.itemsToLoad = this.itemsToLoad + this.numOfItemsToAddOnScroll;
