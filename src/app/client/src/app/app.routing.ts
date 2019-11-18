@@ -32,9 +32,21 @@ const appRoutes: Routes = [
   // {
   //   path: 'dashBoard', loadChildren: 'app/modules/dashboard/dashboard.module#DashboardModule'
   // },
-  {
-    path: 'profile', loadChildren: 'app/plugins/profile/profile.module#ProfileModule'
-  },
+  // {
+  //   path: 'profile', loadChildren: 'app/plugins/profile/profile.module#ProfileModule'
+  // },
+  // {
+  //   path: 'certs', loadChildren: 'app/modules/certificate/certificate.module#CertificateModule'
+  // },
+  // {
+  //   path: 'recover', loadChildren: 'app/modules/recover-account/recover-account.module#RecoverAccountModule'
+  // },
+  // {
+  //   path: 'accountMerge', loadChildren: 'app/modules/merge-account/merge-account.module#MergeAccountModule'
+  // },
+  // {
+  //   path: ':slug/get', loadChildren: 'app/modules/dial-code-search/dial-code-search.module#DialCodeSearchModule'
+  // },
   // {
   //   path: 'get', loadChildren: 'app/modules/dial-code-search/dial-code-search.module#DialCodeSearchModule'
   // },

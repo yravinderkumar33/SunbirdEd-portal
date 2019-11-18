@@ -7,7 +7,7 @@ const routes: Routes = [
     path: ':uuid', component: CertificateDetailsComponent,
     data: {
       telemetry: {
-        env: 'programs-certs', pageid: 'certificate-details', type: 'view'
+        env: 'certs', pageid: 'certificate-details', type: 'view'
       }
     }
   }
