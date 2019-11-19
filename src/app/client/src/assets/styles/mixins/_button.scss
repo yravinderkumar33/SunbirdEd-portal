@@ -1,5 +1,5 @@
 @mixin btn-theme($btn-color) {
-	border-color:($btn-color);
+	border-color: $btn-color;
 	background-color: $btn-color;
 	color: $white;
 	&:hover {
@@ -11,7 +11,6 @@
 }
 
 @mixin btn-theme-bgwhite($btn-color) {
-	border-color: darken($btn-color, 2%);
 	background-color: $white;
   color:($btn-color);
 	&:hover {
@@ -32,7 +31,7 @@
 
 @mixin trans($val...) {
 	-webkit-transition: $val;
-	-moz-transition: $val; 
-	-o-transition: $val; 
-	transition: $val; 
+	-moz-transition: $val;
+	-o-transition: $val;
+	transition: $val;
 }
