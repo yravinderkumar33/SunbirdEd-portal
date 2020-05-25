@@ -181,11 +181,36 @@ export class DataChartComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
+  /**
+   * @description show percentage in pie charts 
+   * @private
+   * @memberof DataChartComponent
+   */
+  private showPercentageInCharts = () => {
+    return {
+      label: function (tooltipItem, data) {
+        var dataset = data.datasets[tooltipItem.datasetIndex];
+        var total = dataset.data.reduce(function (previousValue, currentValue, currentIndex, array) {
+          return previousValue + currentValue;
+        });
+        var currentValue = dataset.data[tooltipItem.index];
+        var percentage = Math.floor(((currentValue / total) * 100) + 0.5);
+        return ` ${data.labels[tooltipItem.index]} - ${percentage} %`;
+      }
+    }
+  }
+
   prepareChart() {
     if (!this.checkForExternalChart()) {
       this.chartOptions = _.get(this.chartConfig, 'options') || { responsive: true };
       this.chartColors = _.get(this.chartConfig, 'colors') || [];
       this.chartType = _.get(this.chartConfig, 'chartType') || 'line';
+
+      //shows percentage in pie chart if showPercentage config is enabled.
+      if (this.chartType === 'pie' && _.get(this.chartOptions, 'showPercentage')) {
+        (this.chartOptions.tooltips || (this.chartOptions.tooltips = {})).callbacks = this.showPercentageInCharts();
+      }
+
       this.legend = (_.get(this.chartConfig, 'legend') === false) ? false : true;
       this.showLastUpdatedOn = false;
       this.showChart = false;
@@ -246,7 +271,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
     const isStackingEnabled = this.checkForStacking();
     _.forEach(this.chartConfig.datasets, dataset => {
       const hidden = _.get(dataset, 'hidden') || false;
-      const fill = _.get(dataset, 'fill') || true;
+      const fill = _.isBoolean(_.get(dataset, 'fill')) ? _.get(dataset, 'fill') : true;
       const type = _.get(dataset, 'type');
       const lineThickness = _.get(dataset, 'lineThickness');
       this.datasets.push({
