@@ -245,13 +245,18 @@ export class DataChartComponent implements OnInit, OnDestroy {
     this.datasets = [];
     const isStackingEnabled = this.checkForStacking();
     _.forEach(this.chartConfig.datasets, dataset => {
+      const hidden = _.get(dataset, 'hidden') || false;
+      const fill = _.get(dataset, 'fill') || true;
+      const type = _.get(dataset, 'type');
+      const lineThickness = _.get(dataset, 'lineThickness');
       this.datasets.push({
         label: dataset.label,
         data: _.get(dataset, 'data') || this.getData(groupedDataBasedOnLabels, dataset['dataExpr']),
-        hidden: _.get(dataset, 'hidden') || false,
+        hidden,
+        fill,
         ...(isStackingEnabled) && { stack: _.get(dataset, 'stack') || 'default' },
-        ...(_.get(dataset, 'type')) && { type: _.get(dataset, 'type') },
-        ...(_.get(dataset, 'lineThickness')) && { borderWidth: _.get(dataset, 'lineThickness') }
+        ...(type && { type }),
+        ...(lineThickness) && { borderWidth: lineThickness }
       });
     });
 
