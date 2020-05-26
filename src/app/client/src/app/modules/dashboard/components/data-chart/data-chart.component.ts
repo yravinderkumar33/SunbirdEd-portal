@@ -195,7 +195,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
         });
         var currentValue = dataset.data[tooltipItem.index];
         var percentage = Math.floor(((currentValue / total) * 100) + 0.5);
-        return ` ${data.labels[tooltipItem.index]} - ${percentage} %`;
+        return ` ${data.labels[tooltipItem.index]}: ${percentage} %`;
       }
     }
   }
@@ -253,20 +253,28 @@ export class DataChartComponent implements OnInit, OnDestroy {
     });
   }
 
-  getDataSetValue(chartData = this.chartData) {
+  private setChartLabels = (groupedDataBasedOnLabels) => {
     let labels = [];
-    let groupedDataBasedOnLabels;
-    if (_.get(this.chartConfig, 'labelsExpr')) {
-      groupedDataBasedOnLabels = _.groupBy(chartData, (data) => _.trim(data[_.get(this.chartConfig, 'labelsExpr')].toLowerCase()));
-      labels = _.keys(groupedDataBasedOnLabels);
-    }
+    labels = _.keys(groupedDataBasedOnLabels);
+
+    //if hard-codes labels are there use them.
     if (_.get(this.chartConfig, 'labels')) {
       labels = _.get(this.chartConfig, 'labels');
     }
+
     _.forEach(labels, (label, key) => {
       labels[key] = _.capitalize(label);
     });
+
     this.chartLabels = labels;
+  }
+
+  getDataSetValue(chartData = this.chartData) {
+    let groupedDataBasedOnLabels;
+    if (_.get(this.chartConfig, 'labelsExpr')) {
+      groupedDataBasedOnLabels = _.groupBy(chartData, (data) => _.trim(data[_.get(this.chartConfig, 'labelsExpr')].toLowerCase()));
+    }
+    this.setChartLabels(groupedDataBasedOnLabels);
     this.datasets = [];
     const isStackingEnabled = this.checkForStacking();
     _.forEach(this.chartConfig.datasets, dataset => {
@@ -276,7 +284,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
       const lineThickness = _.get(dataset, 'lineThickness');
       this.datasets.push({
         label: dataset.label,
-        data: _.get(dataset, 'data') || this.getData(groupedDataBasedOnLabels, dataset['dataExpr']),
+        data: _.get(dataset, 'data') || this.getData(groupedDataBasedOnLabels, dataset['dataExpr'], +_.get(dataset, 'top')),
         hidden,
         fill,
         ...(isStackingEnabled) && { stack: _.get(dataset, 'stack') || 'default' },
@@ -286,24 +294,40 @@ export class DataChartComponent implements OnInit, OnDestroy {
     });
 
     if (this.showGraphStats) {
-      _.forEach(this.datasets, dataset => {
-        this.resultStatistics[dataset.label] = {
-          sum: _.sumBy(dataset.data, (val) => _.toNumber(val)).toFixed(2),
-          min: _.minBy(dataset.data, (val) => _.toNumber(val)),
-          max: _.maxBy(dataset.data, (val) => _.toNumber(val)),
-          avg: dataset.data.length > 0 ? (_.sumBy(dataset.data, (val) => _.toNumber(val)) / dataset.data.length).toFixed(2) : 0
-        };
-      });
+      this.calculateGraphStats();
     }
   }
 
-  getData(groupedDataBasedOnLabels, dataExpr) {
+  private calculateGraphStats() {
+    _.forEach(this.datasets, dataset => {
+      this.resultStatistics[dataset.label] = {
+        sum: _.sumBy(dataset.data, (val) => _.toNumber(val)).toFixed(2),
+        min: _.minBy(dataset.data, (val) => _.toNumber(val)),
+        max: _.maxBy(dataset.data, (val) => _.toNumber(val)),
+        avg: dataset.data.length > 0 ? (_.sumBy(dataset.data, (val) => _.toNumber(val)) / dataset.data.length).toFixed(2) : 0
+      };
+    });
+  }
+
+  private getData(groupedDataBasedOnLabels, dataExpr, pickTopNElements: number) {
+
     const data = _.mapValues(groupedDataBasedOnLabels, value => {
       return _.sumBy(value, (o) => +o[dataExpr]);
     });
+
+    //Currently enabled for only pie charts
+    if (this.chartType === 'pie' && pickTopNElements) {
+      const sortedDataInDescOrder = _.orderBy(_.map(data, (val, key) => ({ key, val })), 'val', 'desc');
+      const topNData = _.slice(sortedDataInDescOrder, 0, pickTopNElements);
+      const restOfTheData = _.slice(sortedDataInDescOrder, pickTopNElements);
+      const result = _.mapValues(_.keyBy(topNData, 'key'), 'val');
+      result['others'] = _.sumBy(restOfTheData, 'val');
+      this.setChartLabels(result); //set the labels as per the new dataset.
+      return _.values(result);
+    }
+
     return _.values(data);
   }
-
 
   getDateRange({ startDate, endDate }, columnRef) {
     this.selectedStartDate = moment(startDate).subtract(1, 'day');
