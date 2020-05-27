@@ -195,7 +195,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
         });
         var currentValue = dataset.data[tooltipItem.index];
         var percentage = Math.floor(((currentValue / total) * 100) + 0.5);
-        return ` ${data.labels[tooltipItem.index]}: ${percentage} %`;
+        return `${data.labels[tooltipItem.index]}: ${currentValue}  ( ${percentage} % )`;
       }
     }
   }
@@ -214,7 +214,7 @@ export class DataChartComponent implements OnInit, OnDestroy {
       this.legend = (_.get(this.chartConfig, 'legend') === false) ? false : true;
       this.showLastUpdatedOn = false;
       this.showChart = false;
-      if (_.get(this.chartConfig, 'options.showLastUpdatedOn') && this.lastUpdatedOn) {
+      if (_.get(this.chartConfig, 'options.showLastUpdatedOn') || this.lastUpdatedOn) {
         this.showLastUpdatedOn = true;
       }
       if ((_.get(this.chartConfig, 'labelsExpr') || _.get(this.chartConfig, 'labels')) && _.get(this.chartConfig, 'datasets')) {
