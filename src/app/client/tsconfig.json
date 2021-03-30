@@ -22,7 +22,15 @@
     "lib": [
       "es2017",
       "dom"
-    ]
+    ],
+    "paths": {
+      "dashlet": [
+        "dist/dashlet"
+      ],
+      "dashlet/*": [
+        "dist/dashlet/*"
+      ]
+    }
   },
   "exclude": [
     "**/*.spec.data.ts"

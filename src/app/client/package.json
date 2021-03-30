@@ -119,10 +119,14 @@
     "sb-svg2pdf": "0.0.9",
     "slick-carousel": "^1.8.1",
     "tree-model": "^1.0.7",
+    "tslib": "^1.10.0",
     "video.js": "7.5.5",
     "zone.js": "^0.10.3"
   },
   "devDependencies": {
+    "@angular-devkit/build-angular": "~0.803.29",
+    "@angular-devkit/build-ng-packagr": "~0.803.29",
+    "@angular/compiler-cli": "~8.2.14",
     "@angular/language-service": "^8.0.0",
     "@types/jasmine": "^2.8.3",
     "@types/jasminewd2": "^2.0.2",
@@ -142,8 +146,10 @@
     "karma-mocha-reporter": "2.2.5",
     "md5": "2.2.1",
     "minimist": "^1.2.5",
+    "ng-packagr": "^5.4.0",
     "protractor": "^5.4.4",
     "ts-node": "^4.1.0",
+    "tsickle": "^0.37.0",
     "tslint": "^5.9.1",
     "typescript": "~3.4.3"
   }

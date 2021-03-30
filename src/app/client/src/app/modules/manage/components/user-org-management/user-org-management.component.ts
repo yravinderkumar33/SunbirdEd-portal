@@ -20,6 +20,40 @@ import { TncService } from '@sunbird/core';
 })
 export class UserOrgManagementComponent implements OnInit, AfterViewInit, OnDestroy {
 
+
+
+  type = "line";
+
+  config1 = {
+    labelExpr: 'name',
+    datasets: [
+      { dataExpr: 'count', label: 'Count Metrics' },
+    ],
+    options: {
+      legend: false
+    }
+  };
+
+  config2 = {
+    ...this.config1,
+    datasets: [
+      { dataExpr: 'count', label: 'Count Metrics' },
+      { dataExpr: 'test', label: 'Sample Metrics' },
+
+    ],
+    options: {
+      "title": {
+        "text": "Sample Chart Title",
+        "display": true,
+        "fontSize": 16
+      }
+    }
+  }
+
+  data = {
+    values: [{ name: "school", count: 40, test: 20 }, { name: "block", count: 20, test: 30 }, { name: "cluster", count: 10, test: 37 }, { name: "Districts", count: 32, test: 44 }]
+  };
+
   public showModal = false;
   public userService: UserService;
   public userProfile;

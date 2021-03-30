@@ -10,6 +10,7 @@ import { ManageService } from './services/manage/manage.service';
 import { TelemetryModule } from '@sunbird/telemetry';
 import { NgInviewModule } from 'angular-inport';
 import { SharedFeatureModule } from '@sunbird/shared-feature';
+import { DashletModule} from 'dashlet'
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { SharedFeatureModule } from '@sunbird/shared-feature';
     FormsModule,
     ReactiveFormsModule,
     ManageRoutingModule,
-    NgInviewModule
+    NgInviewModule,
+    DashletModule
   ],
   providers: [
     ResourceService,
