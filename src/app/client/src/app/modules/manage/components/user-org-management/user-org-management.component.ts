@@ -1,16 +1,16 @@
-import {Component, AfterViewInit, OnInit, OnDestroy} from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { UserService } from '../../../core/services/user/user.service';
 import { ManageService } from '../../services/manage/manage.service';
 import { ResourceService } from '../../../shared/services/resource/resource.service';
-import {ToasterService, NavigationHelperService, LayoutService} from '@sunbird/shared';
+import { ToasterService, NavigationHelperService, LayoutService } from '@sunbird/shared';
 import { IImpressionEventInput, IInteractEventEdata, IInteractEventObject, TelemetryService } from '@sunbird/telemetry';
 import { ActivatedRoute } from '@angular/router';
-import {first, takeUntil} from 'rxjs/operators';
+import { first, takeUntil } from 'rxjs/operators';
 import * as _ from 'lodash-es';
 import * as $ from 'jquery';
 import 'datatables.net';
 import dayjs from 'dayjs';
-import {Subject} from 'rxjs';
+import { Subject } from 'rxjs';
 import { TncService } from '@sunbird/core';
 
 @Component({
@@ -37,15 +37,29 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit, OnDest
   config2 = {
     ...this.config1,
     datasets: [
-      { dataExpr: 'count', label: 'Count Metrics' },
-      { dataExpr: 'test', label: 'Sample Metrics' },
+      { dataExpr: 'count', label: 'Validated users' },
+      { dataExpr: 'test', label: 'Non Validated Users' },
 
     ],
     options: {
       "title": {
-        "text": "Sample Chart Title",
+        "text": "Details of users who have given consent to share their information",
         "display": true,
         "fontSize": 16
+      },
+      scales: {
+        yAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Count"
+          }
+        }],
+        xAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Region"
+          }
+        }]
       }
     }
   }
@@ -128,7 +142,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit, OnDest
 
   constructor(activatedRoute: ActivatedRoute, public navigationhelperService: NavigationHelperService,
     userService: UserService, manageService: ManageService, private toasterService: ToasterService, resourceService: ResourceService,
-              public layoutService: LayoutService, public telemetryService: TelemetryService, public tncService: TncService) {
+    public layoutService: LayoutService, public telemetryService: TelemetryService, public tncService: TncService) {
     this.userService = userService;
     this.manageService = manageService;
     this.activatedRoute = activatedRoute;
@@ -187,7 +201,7 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit, OnDest
   }
 
   public fileChanged(event) {
-    this.fileUpload =  (event.target as HTMLInputElement).files[0];
+    this.fileUpload = (event.target as HTMLInputElement).files[0];
     this.disableBtn = false;
   }
   openModel() {
@@ -216,11 +230,11 @@ export class UserOrgManagementComponent implements OnInit, AfterViewInit, OnDest
     if (channelName) {
       channelName = channelName + '.zip';
       this.manageService.getData('declared_user_detail', channelName).subscribe(response => {
-          const url = (_.get(response, 'result.signedUrl'));
-          if (url) {
-            this.userDeclaredDetailsUrl = url;
-          }
+        const url = (_.get(response, 'result.signedUrl'));
+        if (url) {
+          this.userDeclaredDetailsUrl = url;
         }
+      }
       );
     }
   }

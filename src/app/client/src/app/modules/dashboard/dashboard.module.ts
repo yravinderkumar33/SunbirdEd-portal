@@ -26,7 +26,7 @@ import { SearchService } from '@sunbird/core';
 import { SharedModule } from '@sunbird/shared';
 import { OrderModule } from 'ngx-order-pipe';
 import { AceEditorModule } from 'ng2-ace-editor';
-
+import { DashletModule} from 'dashlet'
 
 @NgModule({
   imports: [
@@ -41,7 +41,8 @@ import { AceEditorModule } from 'ng2-ace-editor';
     CommonConsumptionModule,
     TelemetryModule,
     NgxDaterangepickerMd.forRoot(),
-    AceEditorModule
+    AceEditorModule,
+    DashletModule
   ],
   declarations: [CourseConsumptionComponent, OrganisationComponent, CourseProgressComponent, UsageReportsComponent,
     DataTableComponent, DataChartComponent, ListAllReportsComponent, ReportSummaryComponent, ReportComponent, AddSummaryModalComponent,

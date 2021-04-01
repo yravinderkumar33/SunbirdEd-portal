@@ -26,6 +26,91 @@ import dayjs from 'dayjs';
 export class CourseProgressComponent implements OnInit, OnDestroy, AfterViewInit {
   modelChanged: Subject<string> = new Subject<string>();
 
+  config1 = {
+    labelExpr: 'Date',
+    datasets: [
+      { dataExpr: 'cert', label: 'Certificates Issued' },
+    ],
+    options: {
+      legend: true
+    }
+  };
+
+  config2 = {
+    ...this.config1,
+    datasets: [
+      { dataExpr: 'Enrollment', label: 'Enrollment Count' },
+
+    ],
+    options: {
+      "title": {
+        "text": "Date Wise Enrollment Count",
+        "display": true,
+        "fontSize": 16
+      },
+      scales: {
+        yAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Count"
+          }
+        }],
+        xAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Date"
+          }
+        }]
+      }
+    }
+  }
+
+  config3 = {
+    ...this.config1,
+    options: {
+      "title": {
+        "text": "Date Wise Certificates Issued Count",
+        "display": true,
+        "fontSize": 16
+      },
+      scales: {
+        yAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Count"
+          }
+        }],
+        xAxes: [{
+          "scaleLabel": {
+            "display": true,
+            "labelString": "Date"
+          }
+        }]
+      }
+    }
+  }
+
+  data = {
+    values: [{
+      Date: "29/03/2021",
+      Enrollment: 10,
+      cert: 20
+    },{
+      Date: "30/03/2021",
+      Enrollment: 22,
+      cert: 33
+    },{
+      Date: "31/03/2021",
+      Enrollment: 35,
+      cert: 28
+    },{
+      Date: "01/004/2021",
+      Enrollment: 7,
+      cert: 45
+    }]
+  };
+
+
   @ViewChild(OnDemandReportsComponent, {static: false})
   public onDemandReports: OnDemandReportsComponent;
   /**

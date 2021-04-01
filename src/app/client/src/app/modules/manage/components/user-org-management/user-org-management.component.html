@@ -56,11 +56,7 @@
             </dl>
 
             <dl class="sb-meta-data">
-              <dt>
-                <img src="./assets/images/icon-info.svg" height="16px" (click)="showChart=true">
-
-              </dt>
-              <dd> <label class="no-data-label font-weight-normal ml-2">Chart Visualization</label>
+              <dd> <label class="no-data-label font-weight-normal ml-2"><button (click)="showChart=true" type="button" class="sb-btn sb-btn-primary sb-btn-normal ripple">Chart</button></label>
               </dd>
 
             </dl>
@@ -250,7 +246,7 @@
 <sui-modal *ngIf="showChart" [mustScroll]="true" [isClosable]="true" [transitionDuration]="0" [size]="'large'"
   class="sb-modal" appBodyScroll (dismissed)="showChart=false" #modal>
   <div class="sb-modal-header">
-    Chart Visualization
+    <!-- Chart Visualization -->
   </div>
   <div class="sb-modal-content flex-ai-jc-center">
     <div>
